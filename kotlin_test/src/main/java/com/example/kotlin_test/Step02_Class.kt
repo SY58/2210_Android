@@ -32,6 +32,29 @@ class AirPlane3{
     }
 }
 
+/*
+    java에서 아래와 같은 모양의 클래스를 kotlin에서 모방하면 ...
+    public class Person{
+        public String name;
+        public Person(String name){
+            this.name=name;
+        }
+    }
+ */
+
+class Person constructor(name:String){ //클래스명 옆에 선언하는 생성자를 primary 생성자라고 한다.
+    //필드 선언
+    var name:String
+
+    init{
+        this.name=name
+    }
+}
+
+//위의 클래스를 조금 간단히 선언하면 아래와 같다.
+class Person2(var name: String)
+//var or val을 생성자의 인자에 선언하면 전달받은 값이 자동으로 같은 이름의 필드가 만들어지고 값이 들어간다.
+
 
 fun main(){
     //클래스를 이용해서 객체 생성 in java => new MyCar()
@@ -40,4 +63,10 @@ fun main(){
     c2.drive()
 
     AirPlane()
+
+    val p1=Person("바나나")
+    println(p1.name)
+
+    val p2=Person2("딸기")
+    println(p2.name)
 }
