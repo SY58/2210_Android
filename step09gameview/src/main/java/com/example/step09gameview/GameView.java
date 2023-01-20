@@ -59,12 +59,20 @@ public class GameView extends View {
     //점수 필드
     int point;
 
+    //효과음을 재생해주는 객체!
+    SoundManager soundManager;
+
     public GameView(Context context) {
         super(context);
     }
 
     public GameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+    }
+
+    //SoundManager 객체를 전달받아서 필드에 저장하는 메소드
+    public void setSoundManager(SoundManager soundManager) {
+        this.soundManager = soundManager;
     }
 
     //초기화 메소드
@@ -261,6 +269,9 @@ public class GameView extends View {
                                   m.y > e.y - unitSize/2 &&
                                   m.y < e.y + unitSize/2;
                 if(isStrike && !e.isFall){//현재 추락중인 적기는 무시하기
+                    //효과음 재생
+                    soundManager.playSound(GameActivity.SOUND_SHOOT);
+
                     //적기 에너지를 줄이고
                     e.energy -= 50;
                     //미사일을 없앤다.
@@ -345,6 +356,8 @@ public class GameView extends View {
     public void missileService(){
         //미사일 만들기
         if(count%5==0){
+            //미사일 발사음 재생
+            soundManager.playSound(GameActivity.SOUND_LAZER);
             missList.add(new Missile(dragonX, dragonY));
         }
 
