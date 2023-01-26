@@ -12,7 +12,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener, OnItemLongClick
 
     //필요한 필드 정의하기
 
-    //lateinit 예약어를 사용하면 null을 넣을필요없이 값을 나중에 넣을 수 있다.
+    //lateinit 예약어를 사용하면 null을 넣을필 요없이 값을 나중에 넣을 수 있다.
     //null을 대입했다가 나중에 값을 바꾸려면 번거롭다.
     lateinit var inputText:EditText
     lateinit var listView: ListView
