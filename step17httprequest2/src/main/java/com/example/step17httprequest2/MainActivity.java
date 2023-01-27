@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity implements Util.RequestListe
 
     @Override
     public void onFail(int requestId, Map<String, Object> result) {
-
+        //에러 메시지를 읽어와서 EditText에 출력하기
+        String data=(String) result.get("data");
+        editText.setText(data);
     }
 }
