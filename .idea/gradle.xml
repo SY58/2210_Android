@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/step19callphone" />
             <option value="$PROJECT_DIR$/step20contentprovider" />
             <option value="$PROJECT_DIR$/step21notification" />
+            <option value="$PROJECT_DIR$/step22service" />
           </set>
         </option>
       </GradleProjectSettings>
