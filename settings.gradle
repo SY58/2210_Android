@@ -38,12 +38,13 @@ include ':step14sqlite'
 include ':step15webview'
 include ':step15webview2'
 include ':step16asynctask'
-include ':step17httprequest'
+include ':step17httprequest' */
 include ':step17httprequest2'
+/*
 include ':step17httprequest3'
 include ':step17example'
 include ':step18login'
- */
+*/
 include ':step19callphone'
 include ':step20contentprovider'
 include ':step21notification'

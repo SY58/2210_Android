@@ -13,7 +13,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -22,9 +26,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener , Util.RequestListener {
 
     MediaPlayer mp;
     //재생 준비가 되었는지 여부
@@ -38,6 +48,11 @@ public class MainActivity extends AppCompatActivity {
     MusicService service;
     //서비스에 연결되었는지 여부
     Boolean isConnected;
+    //Adapter에 연결된 모델
+    List<String> songs;
+    //adapter의 참조값
+    ArrayAdapter<String> adapter;
+
     //서비스 연결 객체
     ServiceConnection sConn=new ServiceConnection() {
         //서비스에 연결이 되었을 때 호출되는 메소드
@@ -111,8 +126,8 @@ public class MainActivity extends AppCompatActivity {
         playBtn=findViewById(R.id.playBtn);
         //재생 버튼을 눌렀을 때
         playBtn.setOnClickListener(v -> {
-            //서비스의 initMusic() 메소드를 호출해서 음악이 재생되도록 한다.
-            service.initMusic("http://192.168.0.34:9000/boot07/resources/upload/mp3piano.mp3");
+            //서비스의 playMusic() 메소드를 호출해서 음악이 재생되도록 한다.
+            service.playMusic();
         });
         //일시중지 버튼
         ImageButton pauseBtn=findViewById(R.id.pauseBtn);
@@ -122,6 +137,18 @@ public class MainActivity extends AppCompatActivity {
 
         //알림 채널 만들기
         createNotificationChannel();
+
+        //ListView 관련 작업
+        ListView listView=findViewById(R.id.listView);
+        //샘플 데이터
+        songs=new ArrayList<>();
+        //listView에 연결할 아답타
+        adapter=new ArrayAdapter<>(this, android.R.layout.simple_list_item_activated_1, songs);
+        listView.setAdapter(adapter);
+        //listView에 아이템 클릭 리스너 등록
+        listView.setOnItemClickListener(this);
+        //재생할 곡 목록을 서버로부터 받아온다.
+        Util.sendGetRequest(1, "http://192.168.0.34:9000/boot07/api/music/list", null, this);
     }
 
     @Override
@@ -185,5 +212,40 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+    //listView의 cell을 클릭하면 호출되는 메소드
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        //position은 클릭한 셀의 인덱스, id는 클릭할 셀의 id, view는 클릭한 cell view
+        String fileName=songs.get(position);
+        service.initMusic(AppConstants.MUSIC_URL+fileName);
+    }
+
+    @Override
+    public void onSuccess(int requestId, Map<String, Object> result) {
+        if(requestId == 1){
+            //[{"fileName":"mp3piano.mp3","title":"쇼팽 녹턴"},{"fileName":"Over_the_Horizon.mp3","title":"Over The Horizon"}]
+            String jsonStr=(String) result.get("data");
+            try {
+                JSONArray arr=new JSONArray(jsonStr);
+                //반복문 돌면서
+                for(int i=0; i<arr.length(); i++){
+                    //JSONObject 객체를 얻어내서 재생목록(음악 목록)에 추가한다.
+                    JSONObject obj=arr.getJSONObject(i);
+                    String fileName=obj.getString("fileName");
+                    songs.add(fileName);
+                }
+                //listView에 연결된 adapter에 모델이 바뀌었다고 알려서 listView에 목록이 출력되도록 한다.
+                adapter.notifyDataSetChanged();
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void onFail(int requestId, Map<String, Object> result) {
+
     }
 }
