@@ -43,8 +43,8 @@ include ':step17httprequest2'
 /*
 include ':step17httprequest3'
 include ':step17example'
-include ':step18login'
 */
+include ':step18login'
 include ':step19callphone'
 include ':step20contentprovider'
 include ':step21notification'
