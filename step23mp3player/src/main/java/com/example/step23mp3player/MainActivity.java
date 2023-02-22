@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -21,6 +24,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
@@ -238,6 +242,24 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
         // position 은 클릭한 셀의 인덱스
         String fileName=musicList.get(position).getSaveFileName();
         service.initMusic(AppConstants.MUSIC_URL+fileName);
+
+        //mp3 파일의 title 이미지를 얻어내는 작업
+        MediaMetadataRetriever mmr=new MediaMetadataRetriever();
+        //mp3파일 로딩
+        mmr.setDataSource(AppConstants.MUSIC_URL+fileName);
+        //image data를 byte[] 로 얻어내서
+        byte[] imageData=mmr.getEmbeddedPicture();
+        //만일 이미지 데이터가 있다면
+        if(imageData != null) {
+            //byte[] 를 활용해서 Bitmap 이미지를 얻어내고
+            Bitmap image = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+            //Bitmap 이미지를 출력할 ImageView
+            ImageView imageView = findViewById(R.id.imageView);
+            imageView.setImageBitmap(image);
+        }else{
+            //기본 이미지를 출력한다
+
+        }
     }
 
     //로그인 여부를 체크하는 작업을 할 비동기 task
@@ -464,12 +486,10 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
                     dto.setRegdate(regdate);
                     //MusicDto를 list에 누적시킨다.
                     musicList.add(dto);
-                    //musicList
-
                 }
                 adapter.notifyDataSetChanged();
             } catch (JSONException je) {
-                Log.e("onPstExecute()", je.getMessage());
+                Log.e("onPostExecute()", je.getMessage());
             }
         }
     }
