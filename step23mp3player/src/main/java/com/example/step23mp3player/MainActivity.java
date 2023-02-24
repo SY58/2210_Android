@@ -46,7 +46,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity  implements AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity  implements AdapterView.OnItemClickListener,
+        MusicService.OnMoveToListener{
 
     MediaPlayer mp;
     //재생 준비가 되었는지 여부
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
 
     //재생음악 목록(자세한 정보가 들어있는 목록)
     List<MusicDto> musicList=new ArrayList<>();
+    //listView의 참조값을 저장할 필드
+    ListView listView;
 
     //서비스 연결객체
     ServiceConnection sConn=new ServiceConnection() {
@@ -83,9 +86,21 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             service=lBinder.getService();
             //연결되었다고 표시
             isConnected=true;
+            //재생 음악 목록을 서비스에도 전달을 해준다.
+            service.setMusicList(musicList);
+            //재생 위치가 다음 곡으로 이동했을 때 해당 리스너를 감시할 리스너 등록
+            service.setOnMoveToListener(MainActivity.this);
+            //현재 재생 위치를 읽어와서
+            int currentIndex=service.getCurrentIndex();
+            listView.setItemChecked(currentIndex, true);
+            adapter.notifyDataSetChanged();
+            listView.smoothScrollToPosition(currentIndex);
+            loadTitleImage(currentIndex);
+
             //핸들러에 메세지 보내기
             handler.removeMessages(0); //만일 핸들러가 동작중에 있으면 메세지를 제거하고
             handler.sendEmptyMessageDelayed(0, 100); //다시 보내기
+
         }
         //서비스에 연결이 해제 되었을때 호출되는 메소드
         @Override
@@ -154,12 +169,22 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
         pauseBtn.setOnClickListener(v->{
             service.pauseMusic();
         });
+        //뒤로 감기 버튼
+        ImageButton rewBtn=findViewById(R.id.rewBtn);
+        rewBtn.setOnClickListener(v -> {
+            service.rewMusic();
+        });
+        //앞으로 감기 버튼
+        ImageButton ffBtn=findViewById(R.id.ffBtn);
+        ffBtn.setOnClickListener(v -> {
+            service.ffMusic();
+        });
 
         //알림체널만들기
         createNotificationChannel();
 
         //ListView 관련 작업
-        ListView listView=findViewById(R.id.listView);
+        listView=findViewById(R.id.listView);
         //셈플 데이터
         songs=new ArrayList<>();
         //ListView 에 연결할 아답타
@@ -237,12 +262,19 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
     //ListView 의 cell 을 클릭하면 호출되는 메소드
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        // position 은 클릭한 셀의 인덱스
-        String fileName=musicList.get(position).getSaveFileName();
-        service.initMusic(AppConstants.MUSIC_URL+fileName);
+        // position 은 클릭한 셀의 인덱스를 서비스에 연결해서 해당 음악을 재생하도록 한다.
+        service.initMusic(position);
+        //타이틀 이미지 바꾸기
+        loadTitleImage(position);
+    }
+
+    //타이틀 이미지를 로딩하는 메소드
+    public void loadTitleImage(int index){
 
         //mp3 파일의 title 이미지를 얻어내는 작업
         MediaMetadataRetriever mmr=new MediaMetadataRetriever();
+        //재생할 음악의 저장된 파일명
+        String fileName=musicList.get(index).getSaveFileName();
         //mp3파일 로딩
         mmr.setDataSource(AppConstants.MUSIC_URL+fileName);
         //image data를 byte[] 로 얻어내서
@@ -258,6 +290,19 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
             //기본 이미지를 출력한다
 
         }
+    }
+
+    //MusicService 클래스 안에 정의한 OnMoveToListener 인터페이스를 구현해서 강제 오버라이드한 메소드
+    @Override
+    public void moved(int index) {
+        //재생위치가 다음으로 이동했을 때 호출되는 메소드로 만들 예정
+        //listView의 selection을 index로 이동시킨다.
+        listView.setItemChecked(index, true);
+        //해당 인덱스로 부드럽게 스크롤되게 한다.
+        listView.smoothScrollToPosition(index);
+        adapter.notifyDataSetChanged();
+        //타이틀 이미지 바꾸기
+        loadTitleImage(index);
     }
 
     //로그인 여부를 체크하는 작업을 할 비동기 task
@@ -308,7 +353,7 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
                 }
                 //서버가 응답한 쿠키 목록을 읽어온다.
                 List<String> cookList=conn.getHeaderFields().get("Set-Cookie");
-                //만일 쿠키가 존대 한다면
+                //만일 쿠키가 존재 한다면
                 if(cookList != null){
                     //반복문 돌면서
                     for(String tmp : cookList){
@@ -489,7 +534,9 @@ public class MainActivity extends AppCompatActivity  implements AdapterView.OnIt
                     //MusicDto를 list에 누적시킨다.
                     musicList.add(dto);
                 }
+                //모델의 데이터가 바뀌었다고 아답타에 알려서 listView가 업데이트 되도록 한다.
                 adapter.notifyDataSetChanged();
+
             } catch (JSONException je) {
                 Log.e("onPostExecute()", je.getMessage());
             }
