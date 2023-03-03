@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:text="사진찍기(원본사진)"
         android:id="@+id/takePicture2"/>
-    <ImageView
+    <com.example.step25imagecapture.TouchImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/imageView"/>
