@@ -11,6 +11,9 @@
         android:theme="@style/Theme.MyAndroid"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".DetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".GalleryListActivity"
             android:exported="true">
             <intent-filter>
@@ -21,7 +24,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
